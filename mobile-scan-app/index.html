@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="/icons/icon-192.png" />
+    <title>Mobile Scan App</title>
+    <style>
+      :root {
+        font-family: "Inter", system-ui, sans-serif;
+        color: #0f172a;
+        background: #f8fafc;
+      }
+      body {
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        padding: 24px;
+      }
+      .card {
+        background: white;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        width: min(520px, 100%);
+      }
+      h1 {
+        margin-top: 0;
+      }
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      input {
+        width: 100%;
+        padding: 12px;
+        font-size: 1rem;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+      }
+      button {
+        margin-top: 16px;
+        width: 100%;
+        background: #0ea5e9;
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .status {
+        margin-top: 12px;
+        padding: 12px;
+        border-radius: 8px;
+        background: #ecfeff;
+        color: #0ea5e9;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Scan colis</h1>
+      <p>Simulateur de scan pour les chauffeurs. Saisissez ou scannez un code colis puis enregistrez-le.</p>
+      <label for="package-code">Code colis</label>
+      <input id="package-code" placeholder="COL-0001" autocomplete="off" />
+      <button id="save-btn" disabled>Enregistrer le scan</button>
+      <div id="status" class="status" hidden></div>
+    </div>
+    <script>
+      const input = document.getElementById('package-code');
+      const status = document.getElementById('status');
+      const button = document.getElementById('save-btn');
+
+      function displayStatus(message) {
+        status.hidden = false;
+        status.textContent = message;
+      }
+
+      function updateButton() {
+        button.disabled = input.value.trim().length === 0;
+      }
+
+      input.addEventListener('input', updateButton);
+
+      button.addEventListener('click', () => {
+        const code = input.value.trim();
+        if (!code) return;
+        const payload = {
+          code,
+          scanned_at: new Date().toISOString(),
+          sync_status: 'pending'
+        };
+        localStorage.setItem('last-scan', JSON.stringify(payload));
+        displayStatus(`Colis ${code} enregistré pour synchronisation`);
+        input.value = '';
+        updateButton();
+      });
+
+      function hydrateFromStorage() {
+        const cached = localStorage.getItem('last-scan');
+        if (!cached) return;
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed?.code) {
+            const label = parsed.scanned_at
+              ? `${parsed.code} scanné le ${new Date(parsed.scanned_at).toLocaleString()}`
+              : `${parsed.code} prêt pour synchronisation`;
+            displayStatus(label);
+          }
+        } catch (err) {
+          console.error('Unable to parse stored scan', err);
+        }
+      }
+
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js');
+      }
+
+      hydrateFromStorage();
+      updateButton();
+    </script>
+  </body>
+</html>
