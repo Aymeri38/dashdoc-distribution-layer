@@ -3,119 +3,529 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0b6bff" />
     <link rel="manifest" href="manifest.json" />
-    <link rel="icon" href="/icons/icon-192.png" />
+    <link rel="icon" href="icons/icon-192.png" />
     <title>Mobile Scan App</title>
     <style>
       :root {
-        font-family: "Inter", system-ui, sans-serif;
-        color: #0f172a;
-        background: #f8fafc;
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        color: #0b1220;
+        background: #050912;
       }
       body {
         margin: 0;
+        min-height: 100vh;
         display: flex;
+        align-items: center;
         justify-content: center;
         padding: 24px;
+        background: radial-gradient(circle at 20% 20%, rgba(11, 107, 255, 0.15), transparent 35%),
+          radial-gradient(circle at 80% 0%, rgba(11, 227, 255, 0.08), transparent 30%),
+          #050912;
       }
-      .card {
-        background: white;
-        padding: 24px;
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-        width: min(520px, 100%);
+      .shell {
+        width: min(720px, 100%);
+        background: linear-gradient(145deg, #0c1324, #0a1020);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.02);
+        border-radius: 18px;
+        padding: 20px;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
       }
       h1 {
-        margin-top: 0;
+        color: #f8fbff;
+        margin: 0;
+        letter-spacing: -0.02em;
+        font-size: 1.4rem;
+      }
+      .badge {
+        background: rgba(11, 107, 255, 0.12);
+        color: #7cc4ff;
+        padding: 8px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(124, 196, 255, 0.3);
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+      .panel {
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 14px;
+        padding: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.03);
       }
       label {
         display: block;
+        color: #cdd8f3;
         font-weight: 600;
         margin-bottom: 8px;
+        letter-spacing: -0.01em;
       }
       input {
         width: 100%;
         padding: 12px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        color: #f4f7ff;
         font-size: 1rem;
-        border-radius: 8px;
-        border: 1px solid #cbd5e1;
+      }
+      input:focus {
+        outline: 2px solid rgba(11, 107, 255, 0.5);
+        border-color: rgba(11, 107, 255, 0.8);
+      }
+      .buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 12px;
       }
       button {
-        margin-top: 16px;
-        width: 100%;
-        background: #0ea5e9;
-        color: white;
+        flex: 1;
+        padding: 12px 14px;
+        border-radius: 12px;
         border: none;
-        padding: 12px;
-        border-radius: 8px;
+        font-weight: 700;
         font-size: 1rem;
         cursor: pointer;
+        transition: transform 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+      }
+      .primary {
+        background: linear-gradient(135deg, #0b6bff, #0ea5e9);
+        color: #fff;
+        box-shadow: 0 10px 30px rgba(11, 107, 255, 0.25);
+      }
+      .ghost {
+        background: rgba(255, 255, 255, 0.08);
+        color: #e2e8f0;
+        border: 1px solid rgba(255, 255, 255, 0.08);
       }
       button:disabled {
-        opacity: 0.5;
+        opacity: 0.45;
         cursor: not-allowed;
+        box-shadow: none;
+      }
+      button:not(:disabled):active {
+        transform: translateY(1px);
       }
       .status {
         margin-top: 12px;
         padding: 12px;
-        border-radius: 8px;
-        background: #ecfeff;
-        color: #0ea5e9;
+        border-radius: 12px;
+        background: rgba(124, 196, 255, 0.08);
+        border: 1px solid rgba(124, 196, 255, 0.25);
+        color: #cce7ff;
+      }
+      .status.error {
+        background: rgba(248, 113, 113, 0.08);
+        border-color: rgba(248, 113, 113, 0.4);
+        color: #fecdd3;
+      }
+      .status.success {
+        background: rgba(52, 211, 153, 0.08);
+        border-color: rgba(52, 211, 153, 0.4);
+        color: #c8f9e7;
+      }
+      .status small {
+        display: block;
+        color: inherit;
+        opacity: 0.9;
+      }
+      .camera {
+        position: relative;
+        margin: 14px 0;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.02);
+        min-height: 220px;
+      }
+      video {
+        width: 100%;
+        display: block;
+        background: #000;
+      }
+      .overlay {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        pointer-events: none;
+        background: radial-gradient(circle, rgba(11, 107, 255, 0.15), transparent 45%);
+        color: #cdd8f3;
+        text-align: center;
+        padding: 12px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+      }
+      .manual-row {
+        display: flex;
+        gap: 10px;
+        margin-top: 8px;
+      }
+      .manual-row input {
+        flex: 1;
+      }
+      .kiosk-hidden {
+        display: none !important;
+      }
+      .last-code {
+        margin-top: 10px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        color: #e2e8f0;
+        font-weight: 600;
+      }
+      .last-code strong {
+        color: #7cc4ff;
+      }
+      @media (max-width: 560px) {
+        body {
+          padding: 12px;
+        }
+        .shell {
+          padding: 16px;
+        }
+        .buttons {
+          flex-direction: column;
+        }
+        .manual-row {
+          flex-direction: column;
+        }
+        button {
+          width: 100%;
+        }
       }
     </style>
   </head>
   <body>
-    <div class="card">
-      <h1>Scan colis</h1>
-      <p>Simulateur de scan pour les chauffeurs. Saisissez ou scannez un code colis puis enregistrez-le.</p>
-      <label for="package-code">Code colis</label>
-      <input id="package-code" placeholder="COL-0001" autocomplete="off" />
-      <button id="save-btn" disabled>Enregistrer le scan</button>
-      <div id="status" class="status" hidden></div>
+    <div class="shell">
+      <header id="app-header">
+        <h1>Mobile Scan App</h1>
+        <div class="badge">PWA prête Android</div>
+      </header>
+
+      <div class="panel">
+        <label for="backend-url" id="backend-label">Backend (Wi-Fi) </label>
+        <input id="backend-url" placeholder="/api" value="/api" />
+
+        <div class="camera" id="camera-block">
+          <video id="preview" playsinline muted></video>
+          <div class="overlay" id="overlay">Autorisez la caméra puis visez le code</div>
+        </div>
+
+        <div class="buttons" id="button-row">
+          <button id="scan-btn" class="primary">Scanner</button>
+          <button id="stop-btn" class="ghost" disabled>Arrêter</button>
+        </div>
+
+        <label for="manual-code" id="manual-label" style="margin-top: 16px;">Saisie manuelle</label>
+        <div class="manual-row" id="manual-row">
+          <input id="manual-code" autocomplete="off" placeholder="COL-0001" />
+          <button id="send-btn" class="primary" disabled>Envoyer</button>
+        </div>
+
+        <div id="last-code" class="last-code" hidden></div>
+
+        <div id="status" class="status" hidden>
+          <strong id="status-text">Prêt</strong>
+          <small id="status-detail"></small>
+        </div>
+      </div>
     </div>
+
     <script>
-      const input = document.getElementById('package-code');
-      const status = document.getElementById('status');
-      const button = document.getElementById('save-btn');
+      const statusBox = document.getElementById('status');
+      const statusText = document.getElementById('status-text');
+      const statusDetail = document.getElementById('status-detail');
+      const backendInput = document.getElementById('backend-url');
+      const manualInput = document.getElementById('manual-code');
+      const sendButton = document.getElementById('send-btn');
+      const scanButton = document.getElementById('scan-btn');
+      const stopButton = document.getElementById('stop-btn');
+      const video = document.getElementById('preview');
+      const overlay = document.getElementById('overlay');
+      const lastCode = document.getElementById('last-code');
+      const buttonRow = document.getElementById('button-row');
+      const cameraBlock = document.getElementById('camera-block');
+      const manualRow = document.getElementById('manual-row');
+      const manualLabel = document.getElementById('manual-label');
+      const backendLabel = document.getElementById('backend-label');
+      const header = document.getElementById('app-header');
 
-      function displayStatus(message) {
-        status.hidden = false;
-        status.textContent = message;
+      const STORAGE_KEY = 'mobile-scan-last';
+      const BACKEND_KEY = 'mobile-scan-backend';
+      const DEFAULT_BACKEND = '/api';
+      let detector = null;
+      let stream = null;
+      let scanning = false;
+      let wakeLock = null;
+      let wakeLockFallbackInterval = null;
+      const kioskMode = new URLSearchParams(window.location.search).get('kiosk') === '1';
+
+      function defaultBackend() {
+        return DEFAULT_BACKEND;
       }
 
-      function updateButton() {
-        button.disabled = input.value.trim().length === 0;
+      function applyKioskMode() {
+        if (!kioskMode) return;
+        header.classList.add('kiosk-hidden');
+        backendLabel.classList.add('kiosk-hidden');
+        backendInput.classList.add('kiosk-hidden');
+        cameraBlock.classList.add('kiosk-hidden');
+        stopButton.classList.add('kiosk-hidden');
+        manualLabel.classList.add('kiosk-hidden');
+        manualRow.classList.add('kiosk-hidden');
+        document.body.classList.add('kiosk');
+        buttonRow.style.marginTop = '0';
       }
 
-      input.addEventListener('input', updateButton);
+      function showLastCode(code) {
+        if (!code) {
+          lastCode.hidden = true;
+          return;
+        }
+        lastCode.hidden = false;
+        lastCode.innerHTML = `Dernier code : <strong>${code}</strong>`;
+      }
 
-      button.addEventListener('click', () => {
-        const code = input.value.trim();
-        if (!code) return;
-        const payload = {
-          code,
-          scanned_at: new Date().toISOString(),
-          sync_status: 'pending'
-        };
-        localStorage.setItem('last-scan', JSON.stringify(payload));
-        displayStatus(`Colis ${code} enregistré pour synchronisation`);
-        input.value = '';
-        updateButton();
-      });
+      function showStatus(label, tone = 'info', detail = '') {
+        statusBox.hidden = false;
+        statusBox.classList.remove('error', 'success');
+        if (tone === 'error') statusBox.classList.add('error');
+        if (tone === 'success') statusBox.classList.add('success');
+        statusText.textContent = label;
+        statusDetail.textContent = detail;
+      }
 
-      function hydrateFromStorage() {
-        const cached = localStorage.getItem('last-scan');
-        if (!cached) return;
+      function getBackendUrl() {
+        const raw = backendInput.value.trim() || defaultBackend();
+        const normalized = raw.startsWith('http') || raw.startsWith('/') ? raw : `/${raw}`;
+        const sanitized = normalized.replace(/\/+$/, '');
+        localStorage.setItem(BACKEND_KEY, sanitized);
+        backendInput.value = sanitized;
+        return sanitized;
+      }
+
+      function persistLastScan(data) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      }
+
+      function loadLastScan() {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
         try {
-          const parsed = JSON.parse(cached);
-          if (parsed?.code) {
-            const label = parsed.scanned_at
-              ? `${parsed.code} scanné le ${new Date(parsed.scanned_at).toLocaleString()}`
-              : `${parsed.code} prêt pour synchronisation`;
-            displayStatus(label);
-          }
+          return JSON.parse(raw);
         } catch (err) {
           console.error('Unable to parse stored scan', err);
+          return null;
+        }
+      }
+
+      async function ensureDetector() {
+        if (!('BarcodeDetector' in window)) return null;
+        if (detector) return detector;
+        const supported = await BarcodeDetector.getSupportedFormats();
+        detector = new BarcodeDetector(
+          supported.length ? supported : ['qr_code', 'code_128', 'ean_13', 'ean_8']
+        );
+        return detector;
+      }
+
+      function stopCamera() {
+        scanning = false;
+        scanButton.disabled = false;
+        stopButton.disabled = true;
+        overlay.textContent = 'Caméra arrêtée';
+        if (stream) {
+          stream.getTracks().forEach((track) => track.stop());
+          stream = null;
+        }
+        video.srcObject = null;
+      }
+
+      async function detectLoop() {
+        if (!scanning || !detector) return;
+        try {
+          const results = await detector.detect(video);
+          if (results.length) {
+            const code = results[0].rawValue || results[0].rawValue === 0 ? String(results[0].rawValue) : null;
+            if (code) {
+              stopCamera();
+              handleScan(code, 'camera');
+              return;
+            }
+          }
+        } catch (err) {
+          console.error('Detection error', err);
+        }
+        if (scanning) {
+          requestAnimationFrame(detectLoop);
+        }
+      }
+
+      async function startScan() {
+        const hasMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+        const usableDetector = await ensureDetector();
+        if (!hasMedia || !usableDetector) {
+          showStatus('Scan caméra non supporté sur cet appareil', 'error');
+          return;
+        }
+        try {
+          overlay.textContent = 'Ouverture de la caméra...';
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: 'environment' } },
+          });
+          video.srcObject = stream;
+          await video.play();
+          scanning = true;
+          scanButton.disabled = true;
+          stopButton.disabled = false;
+          overlay.textContent = 'Alignez le code-barres ou QR dans la zone';
+          requestAnimationFrame(detectLoop);
+        } catch (err) {
+          console.error('Camera error', err);
+          showStatus('Impossible d\'ouvrir la caméra', 'error', err.message || '');
+          stopCamera();
+        }
+      }
+
+      function preventMixedContent(backendUrl) {
+        if (window.location.protocol === 'https:' && backendUrl.startsWith('http:')) {
+          showStatus(
+            'Backend HTTP bloque par le navigateur en HTTPS. Utilise /api ou une URL en HTTPS.',
+            'error'
+          );
+          return true;
+        }
+        return false;
+      }
+
+      async function checkBackendHealth() {
+        const backendUrl = getBackendUrl();
+        if (preventMixedContent(backendUrl)) {
+          return;
+        }
+        try {
+          const res = await fetch(`${backendUrl}/health`, { cache: 'no-store' });
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
+          showStatus('Backend joignable', 'success');
+        } catch (err) {
+          showStatus('Backend injoignable', 'error', err.message || '');
+        }
+      }
+
+      async function sendScan(payload) {
+        const backendUrl = getBackendUrl();
+        if (preventMixedContent(backendUrl)) {
+          throw new Error('Mixed content bloque : backend en HTTP');
+        }
+        const response = await fetch(`${backendUrl}/scan`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || 'Envoi refusé par le backend');
+        }
+        return response.json();
+      }
+
+      async function handleScan(code, source) {
+        const trimmed = (code || '').trim();
+        if (!trimmed) return;
+        const payload = {
+          code: trimmed,
+          scanned_at: new Date().toISOString(),
+          source,
+        };
+        showLastCode(trimmed);
+        showStatus(`Envoi de ${trimmed}...`);
+        persistLastScan({ ...payload, status: 'pending' });
+
+        try {
+          const res = await sendScan(payload);
+          persistLastScan({ ...payload, status: 'sent', backend_response: res });
+          showStatus(`Scan ${trimmed} envoyé`, 'success', `Réception backend: ${res.status || 'ok'}`);
+        } catch (err) {
+          persistLastScan({ ...payload, status: 'error', error: err.message });
+          showStatus(`Erreur d'envoi de ${trimmed}`, 'error', err.message || 'Réessayez en Wi-Fi');
+        }
+      }
+
+      function hydrate() {
+        const savedBackend = localStorage.getItem(BACKEND_KEY) || defaultBackend();
+        backendInput.value = savedBackend;
+        getBackendUrl();
+
+        const last = loadLastScan();
+        if (last?.code) {
+          showLastCode(last.code);
+          if (last.status === 'pending') {
+            showStatus(`Scan ${last.code} en attente de connexion`);
+            handleScan(last.code, last.source || 'resume');
+          } else if (last.status === 'error') {
+            showStatus(`Dernier scan ${last.code} en échec`, 'error', last.error || '');
+          } else if (last.status === 'sent') {
+            showStatus(`Dernier scan ${last.code} envoyé`, 'success');
+          }
+        } else {
+          checkBackendHealth();
+        }
+      }
+
+      backendInput.addEventListener('change', () => getBackendUrl());
+
+      manualInput.addEventListener('input', () => {
+        sendButton.disabled = manualInput.value.trim().length === 0;
+      });
+
+      sendButton.addEventListener('click', () => {
+        const code = manualInput.value.trim();
+        if (!code) return;
+        manualInput.value = '';
+        sendButton.disabled = true;
+        handleScan(code, 'manual');
+      });
+
+      scanButton.addEventListener('click', () => startScan());
+      stopButton.addEventListener('click', () => stopCamera());
+
+      async function requestWakeLock() {
+        if (!('wakeLock' in navigator)) return;
+        try {
+          wakeLock = await navigator.wakeLock.request('screen');
+          wakeLock.addEventListener('release', () => {
+            console.log('Wake Lock released');
+          });
+        } catch (err) {
+          console.warn('Wake Lock request failed', err);
+        }
+      }
+
+      function setupWakeLock() {
+        if (kioskMode) {
+          if ('wakeLock' in navigator) {
+            requestWakeLock();
+            document.addEventListener('visibilitychange', () => {
+              if (document.visibilityState === 'visible') requestWakeLock();
+            });
+          } else {
+            // Fallback: keep activity ticking; may help some devices stay awake.
+            wakeLockFallbackInterval = setInterval(() => {
+              window.dispatchEvent(new Event('touchstart'));
+            }, 30000);
+          }
         }
       }
 
@@ -123,8 +533,9 @@
         navigator.serviceWorker.register('service-worker.js');
       }
 
-      hydrateFromStorage();
-      updateButton();
+      applyKioskMode();
+      hydrate();
+      setupWakeLock();
     </script>
   </body>
 </html>

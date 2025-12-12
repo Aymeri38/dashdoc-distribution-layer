@@ -17,3 +17,4 @@ de la distribution pour Jeantin Casset Distribution, en complément de Dashdoc.
 - Backend : voir `backend/README.md` pour lancer l'API
 - Mobile : `python -m http.server 8080 --directory mobile-scan-app`
 - Documentation : `docs/architecture.md`
+- Deploiement Synology/Cloudflare : `docs/deploy-synology-cloudflare.md`

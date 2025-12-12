@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mobile-scan-cache-v2';
+const CACHE_NAME = 'mobile-scan-cache-v4';
 const BASE_URL = self.registration.scope;
 
 const ASSETS = [
@@ -24,7 +24,25 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  const requestUrl = new URL(event.request.url);
+
+  // Never cache API traffic; go straight to network.
+  if (requestUrl.pathname.startsWith('/api')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // Do not cache backend or any cross-origin requests; go network-direct.
+  if (requestUrl.origin !== self.location.origin) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // Cache-first for known static assets; otherwise passthrough to network.
   event.respondWith(
-    caches.match(event.request).then((response) => response || fetch(event.request))
+    caches.match(event.request).then((response) => {
+      if (response) return response;
+      return fetch(event.request);
+    })
   );
 });
